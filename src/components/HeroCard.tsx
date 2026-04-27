@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { theme } from '../theme';
 import type { HeroStat } from '../types';
 
@@ -12,8 +12,12 @@ interface HeroCardProps {
 }
 
 export function HeroCard({ favoriteCount, onBrowsePress, resultCount, stats }: HeroCardProps) {
+  const { width } = useWindowDimensions();
+  const isCompact = width < 380;
+  const isWide = width >= 720;
+
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, isCompact && styles.wrapperCompact, isWide && styles.wrapperWide]}>
       <Image
         cachePolicy="memory-disk"
         contentFit="cover"
@@ -22,43 +26,49 @@ export function HeroCard({ favoriteCount, onBrowsePress, resultCount, stats }: H
         transition={400}
       />
       <LinearGradient
-        colors={['rgba(17, 39, 31, 0.08)', 'rgba(17, 39, 31, 0.36)', theme.colors.overlay]}
-        locations={[0, 0.5, 0.92]}
-        style={styles.overlay}
+        colors={['rgba(9, 24, 18, 0.08)', 'rgba(9, 24, 18, 0.34)', 'rgba(8, 23, 18, 0.76)']}
+        locations={[0.06, 0.45, 1]}
+        style={[styles.overlay, isCompact && styles.overlayCompact, isWide && styles.overlayWide]}
       >
         <View style={styles.topRow}>
-          <View style={styles.locationChip}>
+          <View style={styles.locationRow}>
             <View style={styles.locationDot} />
-            <Text style={styles.locationChipText}>Kandy, Sri Lanka</Text>
+            <Text style={styles.locationText}>Kandy, Sri Lanka</Text>
           </View>
-          <View style={styles.savedChip}>
-            <Text style={styles.savedChipText}>{favoriteCount} saved</Text>
-          </View>
+          <Text style={styles.savedText}>{favoriteCount} saved</Text>
         </View>
 
-        <View style={styles.copyBlock}>
-          <Text style={styles.kicker}>Kandy sightseeing guide</Text>
-          <Text style={styles.title}>Explore Kandy through views, culture, and local lifestyle finds.</Text>
-          <Text style={styles.description}>
-            Discover a focused travel experience with top attractions, curated shopping, and a
-            lighter mobile flow built to feel intentional from the first screen.
+        <View style={[styles.copyBlock, isWide && styles.copyBlockWide]}>
+          <Text style={styles.kicker}>Curated city guide</Text>
+          <Text style={[styles.title, isCompact && styles.titleCompact, isWide && styles.titleWide]}>
+            Explore Kandy, beautifully.
           </Text>
-          <Pressable onPress={onBrowsePress} style={styles.ctaButton}>
+          <Text style={styles.description}>
+            Temple views, local craft, tea, and keepsakes, edited into a calmer way to discover the
+            city.
+          </Text>
+          <Pressable
+            accessibilityLabel="Browse curated Kandy products"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onBrowsePress}
+            style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
+          >
             <Text style={styles.ctaText}>Browse Products</Text>
           </Pressable>
         </View>
 
-        <View style={styles.statRow}>
+        <View style={styles.metaRail}>
           {stats.map((stat) => (
-            <View key={stat.label} style={styles.statCard}>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
+            <View key={stat.label} style={styles.metaItem}>
+              <Text style={styles.metaValue}>{stat.value}</Text>
+              <Text style={styles.metaLabel}>{stat.label}</Text>
             </View>
           ))}
 
-          <View style={[styles.statCard, styles.highlightStatCard]}>
-            <Text style={styles.statValue}>{resultCount.toString().padStart(2, '0')}</Text>
-            <Text style={styles.statLabel}>Visible now</Text>
+          <View style={styles.metaItem}>
+            <Text style={styles.metaValue}>{resultCount.toString().padStart(2, '0')}</Text>
+            <Text style={styles.metaLabel}>Visible now</Text>
           </View>
         </View>
       </LinearGradient>
@@ -69,10 +79,16 @@ export function HeroCard({ favoriteCount, onBrowsePress, resultCount, stats }: H
 const styles = StyleSheet.create({
   wrapper: {
     borderRadius: theme.radii.xlarge,
-    minHeight: 420,
+    minHeight: 488,
     overflow: 'hidden',
     position: 'relative',
     ...theme.shadows.elevated,
+  },
+  wrapperCompact: {
+    minHeight: 536,
+  },
+  wrapperWide: {
+    minHeight: 460,
   },
   heroImage: {
     ...StyleSheet.absoluteFillObject,
@@ -80,118 +96,136 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'space-between',
-    minHeight: 420,
+    minHeight: 488,
+    paddingHorizontal: theme.spacing.xxl,
+    paddingVertical: theme.spacing.xxl,
+  },
+  overlayCompact: {
+    minHeight: 536,
     paddingHorizontal: theme.spacing.xl,
     paddingVertical: theme.spacing.xl,
   },
+  overlayWide: {
+    minHeight: 460,
+    paddingHorizontal: theme.spacing.xxxl,
+    paddingVertical: theme.spacing.xxl,
+  },
   topRow: {
+    alignItems: 'flex-start',
+    gap: theme.spacing.sm,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
-  locationChip: {
+  locationRow: {
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 250, 240, 0.14)',
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    borderRadius: 999,
-    borderWidth: 1,
     flexDirection: 'row',
     gap: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: 10,
+    minHeight: 32,
   },
   locationDot: {
     backgroundColor: theme.colors.gold,
     borderRadius: 999,
-    height: 7,
-    width: 7,
+    height: 8,
+    width: 8,
   },
-  locationChipText: {
-    color: theme.colors.inkInverse,
+  locationText: {
+    color: theme.colors.ivory,
     fontFamily: theme.fonts.bodySemi,
     fontSize: theme.typography.footnote,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
-  savedChip: {
-    backgroundColor: 'rgba(255, 250, 240, 0.14)',
-    borderColor: 'rgba(255, 255, 255, 0.18)',
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: 10,
-  },
-  savedChipText: {
-    color: theme.colors.inkInverse,
-    fontFamily: theme.fonts.bodySemi,
+  savedText: {
+    color: 'rgba(255, 250, 242, 0.72)',
+    fontFamily: theme.fonts.bodyRegular,
     fontSize: theme.typography.footnote,
+    lineHeight: 32,
   },
   copyBlock: {
     marginTop: theme.spacing.xxxl,
-    paddingRight: 10,
+    maxWidth: 500,
+  },
+  copyBlockWide: {
+    maxWidth: 560,
   },
   kicker: {
-    color: 'rgba(255, 247, 235, 0.92)',
+    color: 'rgba(255, 250, 240, 0.76)',
     fontFamily: theme.fonts.bodySemi,
     fontSize: theme.typography.footnote,
-    letterSpacing: 1.6,
-    marginBottom: theme.spacing.md,
+    letterSpacing: 1.8,
+    marginBottom: theme.spacing.lg,
     textTransform: 'uppercase',
   },
   title: {
-    color: theme.colors.inkInverse,
+    color: theme.colors.ivory,
     fontFamily: theme.fonts.displayBold,
-    fontSize: 42,
-    lineHeight: 44,
-    marginBottom: theme.spacing.md,
+    fontSize: 48,
+    letterSpacing: -0.5,
+    lineHeight: 49,
+    marginBottom: theme.spacing.lg,
+  },
+  titleCompact: {
+    fontSize: 40,
+    lineHeight: 42,
+  },
+  titleWide: {
+    fontSize: 56,
+    lineHeight: 58,
   },
   description: {
-    color: 'rgba(255, 250, 242, 0.86)',
+    color: 'rgba(255, 250, 242, 0.82)',
     fontFamily: theme.fonts.bodyRegular,
     fontSize: theme.typography.callout,
-    lineHeight: 23,
-    maxWidth: 520,
+    lineHeight: 24,
+    maxWidth: 410,
   },
   ctaButton: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 250, 240, 0.94)',
+    backgroundColor: theme.colors.ivory,
     borderRadius: 999,
-    marginTop: theme.spacing.xl,
-    paddingHorizontal: theme.spacing.xxl,
-    paddingVertical: theme.spacing.md,
+    justifyContent: 'center',
+    marginTop: theme.spacing.xxxl,
+    minHeight: 52,
+    paddingHorizontal: 30,
+    paddingVertical: theme.spacing.lg,
     ...theme.shadows.card,
+  },
+  ctaButtonPressed: {
+    opacity: 0.86,
+    transform: [{ scale: 0.98 }],
   },
   ctaText: {
     color: theme.colors.ink,
     fontFamily: theme.fonts.bodyBold,
     fontSize: theme.typography.body,
   },
-  statRow: {
+  metaRail: {
+    borderTopColor: 'rgba(255, 250, 242, 0.18)',
+    borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: theme.spacing.md,
-    marginTop: theme.spacing.xl,
+    gap: theme.spacing.xl,
+    marginTop: theme.spacing.xxxl,
+    paddingTop: theme.spacing.lg,
   },
-  statCard: {
-    backgroundColor: 'rgba(255, 250, 240, 0.12)',
-    borderColor: 'rgba(255, 250, 240, 0.18)',
-    borderRadius: 24,
-    borderWidth: 1,
-    minWidth: 94,
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.md,
+  metaItem: {
+    flexGrow: 1,
+    minWidth: 88,
   },
-  highlightStatCard: {
-    backgroundColor: 'rgba(212, 164, 91, 0.22)',
-    borderColor: 'rgba(212, 164, 91, 0.32)',
-  },
-  statValue: {
-    color: theme.colors.inkInverse,
-    fontFamily: theme.fonts.displayBold,
-    fontSize: theme.typography.title1,
-    lineHeight: 30,
+  metaValue: {
+    color: theme.colors.ivory,
+    fontFamily: theme.fonts.bodyBold,
+    fontSize: theme.typography.callout,
+    lineHeight: 20,
     marginBottom: theme.spacing.xs,
   },
-  statLabel: {
-    color: 'rgba(255, 250, 242, 0.82)',
-    fontFamily: theme.fonts.body,
+  metaLabel: {
+    color: 'rgba(255, 250, 242, 0.64)',
+    fontFamily: theme.fonts.bodyRegular,
     fontSize: theme.typography.caption,
+    letterSpacing: 0.3,
+    lineHeight: 15,
+    textTransform: 'uppercase',
   },
 });

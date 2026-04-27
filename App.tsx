@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useRef, useState, useTransition } from 'react';
+import { useDeferredValue, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -81,8 +81,11 @@ export default function App() {
   const [isBootLoading, setIsBootLoading] = useState(true);
   const [isInitialProductsLoading, setIsInitialProductsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const deferredQuery = useDeferredValue(searchQuery.trim().toLowerCase());
+  const previousFilterStateRef = useRef({
+    category: selectedCategory,
+    quickFilterId: selectedQuickFilter,
+  });
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -96,6 +99,14 @@ export default function App() {
 
   useEffect(() => {
     const requestId = productRequestIdRef.current + 1;
+    const shouldResetScroll =
+      previousFilterStateRef.current.category !== selectedCategory ||
+      previousFilterStateRef.current.quickFilterId !== selectedQuickFilter;
+
+    previousFilterStateRef.current = {
+      category: selectedCategory,
+      quickFilterId: selectedQuickFilter,
+    };
 
     productRequestIdRef.current = requestId;
     setIsInitialProductsLoading(true);
@@ -105,7 +116,10 @@ export default function App() {
     setTotalProducts(0);
     setNextCursor(0);
     setSelectedProduct(null);
-    listRef.current?.scrollToOffset({ animated: false, offset: 0 });
+
+    if (shouldResetScroll) {
+      listRef.current?.scrollToOffset({ animated: false, offset: 0 });
+    }
 
     let isActive = true;
 
@@ -140,9 +154,7 @@ export default function App() {
       setVoiceTranscript('');
     }
 
-    startTransition(() => {
-      setSearchQuery(text);
-    });
+    setSearchQuery(text);
   };
 
   const handleCategoryPress = (category: 'All' | ProductCategory) => {
@@ -184,9 +196,7 @@ export default function App() {
     setVoiceTranscript(prompt.spokenText);
     setSelectedCategory(prompt.category ?? 'All');
     setSelectedQuickFilter(prompt.quickFilter ?? null);
-    startTransition(() => {
-      setSearchQuery(prompt.query);
-    });
+    setSearchQuery(prompt.query);
   };
 
   const handleBrowsePress = () => {
@@ -291,7 +301,7 @@ export default function App() {
                 <FeaturedAttractions attractions={FEATURED_ATTRACTIONS} />
                 <FilterPanel
                   categories={CATEGORY_ORDER}
-                  isPending={isPending || isInitialProductsLoading || isFetchingMore}
+                  isPending={isInitialProductsLoading || isFetchingMore}
                   promptShortcuts={PROMPT_SHORTCUTS}
                   quickFilters={QUICK_FILTERS}
                   resultsLabel={resultsLabel}

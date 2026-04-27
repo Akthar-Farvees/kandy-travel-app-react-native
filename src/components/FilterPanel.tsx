@@ -71,10 +71,11 @@ export function FilterPanel({
 }: FilterPanelProps) {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [isVoiceTrayOpen, setIsVoiceTrayOpen] = useState(false);
+  const trimmedSearchQuery = searchQuery.trim();
   const selectedQuickFilterLabel = quickFilters.find((f) => f.id === selectedQuickFilter)?.label ?? 'All filters';
   const selectedCategoryLabel = selectedCategory === 'All' ? 'All categories' : selectedCategory;
   const activeFilters = [
-    searchQuery ? `Search: ${searchQuery}` : null,
+    trimmedSearchQuery ? `Search: ${trimmedSearchQuery}` : null,
     selectedCategory !== 'All' ? `Category: ${selectedCategory}` : null,
     selectedQuickFilter ? `Filter: ${selectedQuickFilterLabel}` : null,
     voiceTranscript ? `Voice: ${voiceTranscript}` : null,
@@ -94,7 +95,13 @@ export function FilterPanel({
           <Text style={styles.sectionTitle}>Filter Kandy lifestyle finds</Text>
         </View>
         {activeFilters.length > 0 ? (
-          <Pressable onPress={onResetFilters} style={styles.clearButton}>
+          <Pressable
+            accessibilityLabel="Clear all search and product filters"
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={onResetFilters}
+            style={styles.clearButton}
+          >
             <Ionicons color={theme.colors.ink} name="close-circle-outline" size={14} />
             <Text style={styles.clearButtonText}>Clear</Text>
           </Pressable>
@@ -106,19 +113,42 @@ export function FilterPanel({
           <View style={styles.searchIcon}>
             <Ionicons color={theme.colors.jade} name="search-outline" size={18} />
           </View>
-          <TextInput onChangeText={onSearchChange} placeholder="Search tea, jewelry, spices, or batik..."
-            placeholderTextColor="#93A095" selectionColor={theme.colors.gold} style={styles.input} value={searchQuery} />
+          <TextInput
+            accessibilityLabel="Search products"
+            autoCapitalize="none"
+            autoCorrect={false}
+            clearButtonMode="while-editing"
+            onChangeText={onSearchChange}
+            placeholder="Search tea, jewelry, spices, or batik..."
+            placeholderTextColor="#93A095"
+            returnKeyType="search"
+            selectionColor={theme.colors.gold}
+            style={styles.input}
+            value={searchQuery}
+          />
         </View>
         <View style={styles.voiceButtonWrapper}>
           <VoicePulse active={isVoiceTrayOpen} />
-          <Pressable onPress={toggleVoiceTray} style={[styles.voiceButton, isVoiceTrayOpen && styles.voiceButtonActive]}>
+          <Pressable
+            accessibilityLabel={isVoiceTrayOpen ? 'Close voice prompt shortcuts' : 'Open voice prompt shortcuts'}
+            accessibilityRole="button"
+            hitSlop={8}
+            onPress={toggleVoiceTray}
+            style={[styles.voiceButton, isVoiceTrayOpen && styles.voiceButtonActive]}
+          >
             <Ionicons color={isVoiceTrayOpen ? '#FFF' : theme.colors.ink} name={isVoiceTrayOpen ? 'mic' : 'mic-outline'} size={20} />
           </Pressable>
         </View>
       </View>
 
       <View style={styles.secondaryRow}>
-        <Pressable onPress={toggleCategoryMenu} style={styles.categoryDropdownTrigger}>
+        <Pressable
+          accessibilityLabel={`Select product category. Current category is ${selectedCategoryLabel}`}
+          accessibilityRole="button"
+          hitSlop={8}
+          onPress={toggleCategoryMenu}
+          style={styles.categoryDropdownTrigger}
+        >
           <View style={styles.dropdownCopy}>
             <Text style={styles.dropdownLabel}>Category</Text>
             <Text style={styles.dropdownValue}>{selectedCategoryLabel}</Text>
@@ -137,8 +167,14 @@ export function FilterPanel({
             const active = selectedCategory === category;
             const palette = category === 'All' ? { accent: theme.colors.gold, textColor: theme.colors.ink } : categoryPalette[category];
             return (
-              <Pressable key={category} onPress={() => handleCategorySelection(category)}
-                style={[styles.dropdownItem, active && styles.dropdownItemActive]}>
+              <Pressable
+                accessibilityLabel={`Filter by ${category === 'All' ? 'all categories' : category}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                key={category}
+                onPress={() => handleCategorySelection(category)}
+                style={[styles.dropdownItem, active && styles.dropdownItemActive]}
+              >
                 <View style={styles.dropdownItemLeft}>
                   <View style={[styles.dropdownAccent, { backgroundColor: palette.accent }]} />
                   <Text style={[styles.dropdownItemText, { color: palette.textColor }]}>{category}</Text>
@@ -154,8 +190,14 @@ export function FilterPanel({
         {quickFilters.map((filter) => {
           const active = selectedQuickFilter === filter.id;
           return (
-            <Pressable key={filter.id} onPress={() => onQuickFilterPress(filter.id)}
-              style={[styles.filterCard, active && styles.filterCardActive]}>
+            <Pressable
+              accessibilityLabel={`Toggle ${filter.label} filter`}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              key={filter.id}
+              onPress={() => onQuickFilterPress(filter.id)}
+              style={[styles.filterCard, active && styles.filterCardActive]}
+            >
               <View style={styles.filterCardHeader}>
                 <Text style={[styles.filterCardLabel, active && styles.filterCardLabelActive]}>{filter.label}</Text>
                 {active ? <Ionicons color={theme.colors.forestSoft} name="checkmark-circle" size={16} /> : null}
@@ -194,7 +236,13 @@ export function FilterPanel({
           ) : null}
           <View style={styles.promptRow}>
             {promptShortcuts.map((prompt) => (
-              <Pressable key={prompt.chipLabel} onPress={() => onVoicePromptPress(prompt)} style={styles.promptChip}>
+              <Pressable
+                accessibilityLabel={`Apply voice prompt: ${prompt.chipLabel}`}
+                accessibilityRole="button"
+                key={prompt.chipLabel}
+                onPress={() => onVoicePromptPress(prompt)}
+                style={styles.promptChip}
+              >
                 <Ionicons color={theme.colors.gold} name="chatbubble-outline" size={14} />
                 <Text style={styles.promptChipText}>{prompt.chipLabel}</Text>
               </Pressable>
